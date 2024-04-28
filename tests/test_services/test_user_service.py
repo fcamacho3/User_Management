@@ -197,3 +197,64 @@ async def test_create_user_with_email_failure(db_session, email_service):
         
         # Check that an error was logged due to email failure
         mock_logger.error.assert_called_with("Error sending verification email: Email service failure")
+
+# Tests for create method
+@pytest.mark.asyncio
+async def test_create_user_with_unique_nickname(db_session, email_service):
+    # Prepare user data with a specified nickname
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "unique@example.com",
+        "password": "SecurePassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    # Create a user to ensure the nickname is initially unique
+    user = await UserService.create(db_session, user_data, email_service)
+    assert user is not None
+    assert user.nickname == user_data["nickname"]
+
+@pytest.mark.asyncio
+async def test_create_user_with_duplicate_nickname(db_session, email_service):
+    # Create a user to establish a nickname in the database
+    initial_data = {
+        "nickname": generate_nickname(),
+        "email": "first@example.com",
+        "password": "FirstPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    first_user = await UserService.create(db_session, initial_data, email_service)
+    
+    # Attempt to create another user with the same nickname
+    duplicate_nickname_data = {
+        "nickname": first_user.nickname,  # Reusing the same nickname
+        "email": "second@example.com",
+        "password": "SecondPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    second_user = await UserService.create(db_session, duplicate_nickname_data, email_service)
+    
+    assert second_user is not None
+    assert second_user.nickname != first_user.nickname  # Ensure a new nickname is generated
+    assert second_user.email == duplicate_nickname_data["email"]
+
+@pytest.mark.asyncio
+async def test_create_user_with_duplicate_email(db_session, email_service):
+    # Create a user to establish an email in the database
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "email@example.com",
+        "password": "UniquePassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    first_user = await UserService.create(db_session, user_data, email_service)
+
+    # Attempt to create another user with the same email
+    duplicate_email_data = {
+        "nickname": generate_nickname(),
+        "email": first_user.email,  # Duplicate email
+        "password": "AnotherPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    second_user = await UserService.create(db_session, duplicate_email_data, email_service)
+    
+    assert second_user is None  # No user should be created due to duplicate email
