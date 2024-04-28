@@ -1,5 +1,6 @@
 from builtins import range
 import pytest
+from unittest.mock import AsyncMock, patch
 from sqlalchemy import select
 from app.dependencies import get_settings
 from app.models.user_model import User, UserRole
@@ -161,3 +162,38 @@ async def test_unlock_user_account(db_session, locked_user):
     assert unlocked, "The account should be unlocked"
     refreshed_user = await UserService.get_by_id(db_session, locked_user.id)
     assert not refreshed_user.is_locked, "The user should no longer be locked"
+
+# Test for Email Verfication
+@pytest.mark.asyncio
+async def test_create_user_with_email_failure(db_session, email_service):
+    # First user setup (ADMIN)
+    admin_data = {
+        "nickname": generate_nickname(),
+        "email": "email_admin@example.com",
+        "password": "SecureAdmin123!",
+        "role": UserRole.ADMIN.name  # Ensures this user becomes ADMIN
+    }
+    admin_user = await UserService.create(db_session, admin_data, email_service)
+    
+    # Second user setup (Should trigger email verification)
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "email_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ANONYMOUS.name  # This should now trigger the email verification process
+    }
+    
+    email_service.send_verification_email = AsyncMock(side_effect=Exception("Email service failure"))
+    
+    with patch('app.services.user_service.logger') as mock_logger:
+        second_user = await UserService.create(db_session, user_data, email_service)
+        
+        # Check the second user is still created
+        assert second_user is not None
+        assert second_user.email == user_data["email"]
+        
+        # Ensure the verification token is set
+        assert second_user.verification_token is not None
+        
+        # Check that an error was logged due to email failure
+        mock_logger.error.assert_called_with("Error sending verification email: Email service failure")
