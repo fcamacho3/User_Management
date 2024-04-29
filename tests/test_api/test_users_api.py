@@ -1,4 +1,5 @@
 from builtins import str
+from unittest.mock import AsyncMock, patch
 import pytest
 from app.services.user_service import UserService
 from httpx import AsyncClient
@@ -228,7 +229,7 @@ async def test_list_users_valid_parameters(async_client: AsyncClient, admin_toke
     assert 'items' in json_response
     assert json_response["total"] >= len(json_response["items"])  # Assuming you have users in your test database
 
-# Test create_user
+# Test create_user while mocking email
 @pytest.mark.asyncio
 async def test_create_user_with_urls(async_client: AsyncClient, admin_token: str):
     user_data = {
@@ -244,13 +245,18 @@ async def test_create_user_with_urls(async_client: AsyncClient, admin_token: str
         "password": "Secure*1234"
     }
     headers = {"Authorization": f"Bearer {admin_token}"}
-    response = await async_client.post("/users/", json=user_data, headers=headers)
-    assert response.status_code == 201
-    response_data = response.json()
-    assert response_data["email"] == "new.user@example.com"
-    assert response_data["nickname"] == "new_user"
-    assert response_data["first_name"] == "New"
-    assert response_data["last_name"] == "User"
-    assert response_data["bio"] == "New user bio"
-    assert response_data["linkedin_profile_url"] == "https://linkedin.com/in/newuser"
-    assert response_data["github_profile_url"] == "https://github.com/newuser"
+
+    # Mock the email service
+    with patch('app.services.email_service.EmailService.send_verification_email', new_callable=AsyncMock) as mock_send_email:
+        response = await async_client.post("/users/", json=user_data, headers=headers)
+    
+        assert response.status_code == 201
+        response_data = response.json()
+        assert response_data["email"] == "new.user@example.com"
+        assert response_data["nickname"] == "new_user"
+        assert response_data["first_name"] == "New"
+        assert response_data["last_name"] == "User"
+        assert response_data["bio"] == "New user bio"
+        assert response_data["linkedin_profile_url"] == "https://linkedin.com/in/newuser"
+        assert response_data["github_profile_url"] == "https://github.com/newuser"
+        assert mock_send_email.called  # Ensures that the email service was called
