@@ -31,11 +31,19 @@ class UserBase(BaseModel):
 
     _validate_urls = validator('profile_picture_url', 'linkedin_profile_url', 'github_profile_url', pre=True, allow_reuse=True)(validate_url)
  
+    @validator('email')
+    def validate_email(cls, v):
+        # Normalize the email to lowercase
+        normalized_email = v.lower()
+        # Check if the email ends with one of the allowed TLDs
+        if not re.search(r"\.(com|org|edu|net|gov)$", normalized_email):
+            raise ValueError("Email must end with one of the following domains: .com, .org, .edu, .net, .gov")
+        return normalized_email
+
     class Config:
         from_attributes = True
 
 class UserCreate(UserBase):
-    email: EmailStr = Field(..., example="john.doe@example.com")
     password: str = Field(..., example="Secure*1234")
 
     # Define min_length and max_length as class variables that are not model fields
