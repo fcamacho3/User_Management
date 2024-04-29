@@ -59,11 +59,19 @@ class UserService:
                 return None
 
             validated_data['hashed_password'] = hash_password(validated_data.pop('password'))
-            new_user = User(**validated_data)
-            new_nickname = generate_nickname()
-            while await cls.get_by_nickname(session, new_nickname):
+
+            # Use provided nickname if it doesn't exist, otherwise generate a new one
+            nickname = validated_data.get('nickname')
+            if await cls.get_by_nickname(session, nickname):
+                # Generate a new unique nickname if the provided one is already taken
                 new_nickname = generate_nickname()
-            new_user.nickname = new_nickname
+                while await cls.get_by_nickname(session, new_nickname):
+                    new_nickname = generate_nickname()
+                validated_data['nickname'] = new_nickname
+            else:
+                validated_data['nickname'] = nickname  # Use the provided nickname as it is unique
+
+            new_user = User(**validated_data)
             logger.info(f"User Role: {new_user.role}")
             user_count = await cls.count(session)
             new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.ANONYMOUS
