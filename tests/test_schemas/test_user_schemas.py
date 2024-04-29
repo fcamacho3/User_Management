@@ -108,3 +108,26 @@ def test_user_base_url_invalid(url, user_base_data):
     user_base_data["profile_picture_url"] = url
     with pytest.raises(ValidationError):
         UserBase(**user_base_data)
+
+# Tests for comprehensive password validation
+password_test_cases = [
+    ("Short7!", f"Password must be between {UserCreate.min_length} and {UserCreate.max_length} characters"),
+    ("A" * (UserCreate.max_length + 1), f"Password must be between {UserCreate.min_length} and {UserCreate.max_length} characters"),
+    ("nouppercase123!", "Password must contain at least one uppercase letter"),
+    ("NOLOWERCASE123!", "Password must contain at least one lowercase letter"),
+    ("NoDigitPassword!", "Password must contain at least one digit"),
+    ("NoSpecialCharacter123", "Password must contain at least one special character"),
+    ("Space Password123!", "Password must not contain spaces"),
+    ("ValidPassword1!", None)  # This is assumed to be a valid password
+]
+
+@pytest.mark.parametrize("password, expected_error", password_test_cases)
+def test_password_validation(user_create_data, password, expected_error):
+    user_data = {**user_create_data, "password": password}
+    if expected_error:
+        with pytest.raises(ValidationError) as excinfo:
+            UserCreate(**user_data)
+        assert expected_error in str(excinfo.value), f"Expected error message: {expected_error}"
+    else:
+        user = UserCreate(**user_data)
+        assert user.password == password, "Valid password should pass validation without errors."
