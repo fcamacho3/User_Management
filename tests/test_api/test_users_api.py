@@ -260,3 +260,64 @@ async def test_create_user_with_urls(async_client: AsyncClient, admin_token: str
         assert response_data["linkedin_profile_url"] == "https://linkedin.com/in/newuser"
         assert response_data["github_profile_url"] == "https://github.com/newuser"
         assert mock_send_email.called  # Ensures that the email service was called
+
+# Tests for update_profile
+@pytest.mark.asyncio
+async def test_update_profile_success(async_client, verified_user_and_token):
+    user, token = verified_user_and_token
+    headers = {"Authorization": f"Bearer {token}"}
+    updated_user_data = {
+        "first_name": "TestUpdate",
+        "last_name": "TestUpdate",
+        "bio": "TestBio",
+        "profile_picture_url": "https://www.example.com/test.jpg",
+        "linkedin_profile_url": "https://www.linkedin.com/test",
+        "github_profile_url": "https://www.github.com/test"
+    }
+    response = await async_client.put("/update-profile/", json=updated_user_data, headers=headers)  
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["first_name"] == updated_user_data["first_name"]
+    assert response_data["last_name"] == updated_user_data["last_name"]
+    assert response_data["bio"] == updated_user_data["bio"]
+    assert response_data["profile_picture_url"] == updated_user_data["profile_picture_url"]
+    assert response_data["linkedin_profile_url"] == updated_user_data["linkedin_profile_url"]
+    assert response_data["github_profile_url"] == updated_user_data["github_profile_url"]
+
+@pytest.mark.asyncio
+async def test_update_profile_unauthorized(async_client: AsyncClient):
+    # Prepare headers without a valid token
+    headers = {"Authorization": "Bearer invalid_or_missing_token"}
+
+    # Attempt to update the profile with an invalid or missing token
+    response = await async_client.put("/update-profile/", json={"nickname": "newNick"}, headers=headers)
+
+    # Check the response for the expected 401 Unauthorized status
+    assert response.status_code == 401
+    assert "detail" in response.json()
+    assert response.json()["detail"] == "Could not validate credentials"
+
+@pytest.mark.asyncio
+async def test_update_user_profile_duplicate_nickname(async_client, db_session, verified_user_and_token):
+    first_user, token = verified_user_and_token
+    test_user_1 = {
+            "nickname": "TestUser",
+            "first_name": "Test",
+            "last_name": "User",
+            "email": "testuser@example.com",
+            "hashed_password": hash_password("Secure*1234!"),
+            "role": UserRole.AUTHENTICATED,
+            "email_verified": True,
+            "is_locked": False,
+        }
+    first_test_user = User(**test_user_1)
+    db_session.add(first_test_user)
+    await db_session.commit()
+
+    headers = {"Authorization": f"Bearer {token}"}
+    updated_user_data = {
+        "nickname": "TestUser",
+    }
+    response = await async_client.put("/update-profile/", json=updated_user_data, headers=headers)  
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Nickname already exists"
