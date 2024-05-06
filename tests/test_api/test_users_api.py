@@ -321,3 +321,31 @@ async def test_update_user_profile_duplicate_nickname(async_client, db_session, 
     response = await async_client.put("/update-profile/", json=updated_user_data, headers=headers)  
     assert response.status_code == 400
     assert response.json()["detail"] == "Nickname already exists"
+
+# Tests for update_professional_status route endpoint
+@pytest.mark.asyncio
+async def test_update_professional_status_as_admin(async_client: AsyncClient, admin_user, admin_token):
+    """
+    Test updating professional status and ensure email service is called, without actually sending an email.
+    """
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    is_professional_status = True  # or False depending on the test case
+
+    with patch('app.services.email_service.EmailService.send_professional_status_email_update', new_callable=AsyncMock) as mock_send_email:
+        response = await async_client.put(f"/users/{admin_user.id}/set-professional/{is_professional_status}", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()['is_professional'] == is_professional_status
+    mock_send_email.assert_awaited_once()  # Ensures that the email service was called
+
+@pytest.mark.asyncio
+async def test_update_professional_status_email_service_failure(async_client, admin_user, admin_token):
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    is_professional_status = True
+
+    with patch('app.services.email_service.EmailService.send_professional_status_email_update', side_effect=Exception("Email failure"), new_callable=AsyncMock) as mock_send_email:
+        response = await async_client.put(f"/users/{admin_user.id}/set-professional/{is_professional_status}", headers=headers)
+
+    assert response.status_code == 200  # Ensure update still succeeds
+    assert response.json()['is_professional'] == is_professional_status
+    mock_send_email.assert_awaited_once()  # Ensure the email attempt was made

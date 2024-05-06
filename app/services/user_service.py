@@ -213,3 +213,25 @@ class UserService:
             await session.commit()
             return True
         return False
+
+# New Feature: update professional status
+    @classmethod
+    async def update_professional_status(cls, session: AsyncSession, user_id: UUID, is_professional: bool, email_service: EmailService) -> Optional[User]:
+        try:
+            query = update(User).where(User.id == user_id).values(is_professional=is_professional).execution_options(synchronize_session="fetch")
+            await cls._execute_query(session, query)
+            updated_user = await cls.get_by_id(session, user_id)
+            if updated_user:
+                session.refresh(updated_user)
+                logger.info(f"User {user_id} updated is_professional status successfully.")
+                try:
+                    await email_service.send_professional_status_email_update(updated_user)
+                except Exception as e:
+                    logger.error(f"Error sending professional status update email: {e}.")
+                return updated_user
+            else:
+                logger.error(f"User {user_id} not found after updating is_professional status.")
+                return None
+        except Exception as e:
+            logger.error(f"Error during updating is_professional status: {e}")
+            return None
