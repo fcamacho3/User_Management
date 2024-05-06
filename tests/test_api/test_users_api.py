@@ -268,11 +268,11 @@ async def test_update_profile_success(async_client, verified_user_and_token):
     headers = {"Authorization": f"Bearer {token}"}
     updated_user_data = {
         "first_name": "TestUpdate",
-        "last_name": "TestUpdate",
-        "bio": "TestBio",
-        "profile_picture_url": "https://www.example.com/test.jpg",
-        "linkedin_profile_url": "https://www.linkedin.com/test",
-        "github_profile_url": "https://www.github.com/test"
+        "last_name": "Profile",
+        "bio": "Testing successful user profile update",
+        "profile_picture_url": "https://www.example.com/updateduser.jpg",
+        "linkedin_profile_url": "https://linkedin.com/in/updateduser",
+        "github_profile_url": "https://github.com/updateduser"
     }
     response = await async_client.put("/update-profile/", json=updated_user_data, headers=headers)  
     assert response.status_code == 200

@@ -181,3 +181,74 @@ def test_user_update_profile_invalid(all_fields_none_update_data):
     with pytest.raises(ValidationError) as exc_info:
         UserUpdateProfile(**all_fields_none_update_data)
     assert "At least one field must be provided for update" in str(exc_info.value)
+
+# Tests for UserUpdateProfile with reserved nickname
+@pytest.mark.parametrize("nickname", ["admin", "moderator", "null", "manager", "anonymous", "authenticated"])
+def test_user_update_profile_reserved_nickname(nickname):
+    with pytest.raises(ValidationError) as excinfo:
+        UserUpdateProfile(nickname=nickname)
+    assert "This nickname is reserved and cannot be used." in str(excinfo.value)
+
+# Tests for first and last name validation
+@pytest.mark.parametrize("name", ["John-Doe", "O'Reilly", "Anne Marie"])
+def test_user_update_profile_name_valid(name):
+    user = UserUpdateProfile(first_name=name, last_name=name)
+    assert user.first_name == name
+    assert user.last_name == name
+
+@pytest.mark.parametrize("first_name, last_name, expected_error", [
+    ("John@Doe", "JohnDoe", "First name can only contain letters, spaces, hyphens, or apostrophes."),
+    ("AnneMarie", "Anne#Marie", "Last name can only contain letters, spaces, hyphens, or apostrophes."),
+    ("1234", "Doe", "First name can only contain letters, spaces, hyphens, or apostrophes."),
+    ("", "", "At least one field must be provided for update")  # This specifically tests the empty case.
+])
+def test_user_update_profile_name_invalid(first_name, last_name, expected_error):
+    with pytest.raises(ValidationError) as excinfo:
+        UserUpdateProfile(first_name=first_name, last_name=last_name)
+    assert expected_error in str(excinfo.value)
+
+# Tests for URL validation
+@pytest.mark.parametrize("url, expected_error", [
+    ("http://example.com/profile.bmp", "Profile picture URL must point to a valid image file (JPEG, PNG)."),  # Invalid file type
+    ("ftp://example.com/profile.jpg", "Profile picture URL must use http or https."),  # Incorrect scheme
+])
+def test_user_update_profile_picture_url_invalid(url, expected_error):
+    with pytest.raises(ValidationError) as excinfo:
+        UserUpdateProfile(profile_picture_url=url, first_name="John")
+    assert expected_error in str(excinfo.value)
+
+# Tests for LinkedIn URL validation
+@pytest.mark.parametrize("url", [
+    "https://linkedin.com/in/johndoe",  # Correct format
+    "https://linkedin.com/in/jane-doe"  # Another valid example
+])
+def test_user_update_profile_linkedin_url_valid(url):
+    # This test confirms that valid URLs do not raise validation errors
+    user = UserUpdateProfile(linkedin_profile_url=url, first_name="John")
+    assert user.linkedin_profile_url == url
+
+@pytest.mark.parametrize("url, expected_error", [
+    ("https://linkedin.com/profile/johndoe", "Invalid LinkedIn profile URL format."),  # Correct domain but incorrect path
+    ("http://linkedin.net/in/johndoe", "Invalid LinkedIn profile URL format."),  # Incorrect domain
+    ("ftp://linkedin.com/in/johndoe", "LinkedIn profile URL must use http or https.")   # Incorrect scheme
+])
+def test_user_update_profile_linkedin_url_invalid(url, expected_error):
+    with pytest.raises(ValidationError) as excinfo:
+        UserUpdateProfile(linkedin_profile_url=url, first_name="John")
+    assert expected_error in str(excinfo.value)
+
+# Tests for GitHub URL validation
+@pytest.mark.parametrize("url, expected_error", [
+    ("https://githu.com/", "Invalid GitHub profile URL format."),  # Correct domain but incorrect path
+    ("ftp://github.com/johndoe", "GitHub profile URL must use http or https."),  # Incorrect scheme
+])
+def test_user_update_profile_github_url_invalid(url, expected_error):
+    with pytest.raises(ValidationError) as excinfo:
+        UserUpdateProfile(github_profile_url=url, first_name="John")
+    assert expected_error in str(excinfo.value)
+
+# Tests for checking at least one field is provided
+def test_user_update_profile_no_fields_provided():
+    with pytest.raises(ValidationError) as exc_info:
+        UserUpdateProfile()
+    assert "At least one field must be provided for update" in str(exc_info.value)

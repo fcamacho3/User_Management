@@ -1,5 +1,6 @@
 from typing import ClassVar
 from builtins import ValueError, any, bool, str
+from urllib.parse import urlparse
 from pydantic import BaseModel, EmailStr, Field, validator, root_validator
 from typing import Optional, List
 from datetime import datetime
@@ -19,14 +20,14 @@ def validate_url(url: Optional[str]) -> Optional[str]:
     return url
 
 class UserBase(BaseModel):
-    email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
-    first_name: Optional[str] = Field(None, example="John")
-    last_name: Optional[str] = Field(None, example="Doe")
-    bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
-    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    email: EmailStr = Field(..., example="john.doe@example.com", max_length=255)
+    nickname: Optional[str] = Field(None, min_length=3, max_length=50, pattern=r'^[\w-]+$', example=generate_nickname())
+    first_name: Optional[str] = Field(None, max_length=100, example="John")
+    last_name: Optional[str] = Field(None, max_length=100, example="Doe")
+    bio: Optional[str] = Field(None, max_length=500, example="Experienced software developer specializing in web applications.")
+    profile_picture_url: Optional[str] = Field(None, max_length=255, example="https://example.com/profiles/john.jpg")
+    linkedin_profile_url: Optional[str] = Field(None, max_length=255, example="https://linkedin.com/in/johndoe")
+    github_profile_url: Optional[str] = Field(None, max_length=255, example="https://github.com/johndoe")
     role: UserRole
 
     _validate_urls = validator('profile_picture_url', 'linkedin_profile_url', 'github_profile_url', pre=True, allow_reuse=True)(validate_url)
@@ -66,7 +67,7 @@ class UserCreate(UserBase):
             raise ValueError('Password must not contain spaces')
         return value
 
-class UserUpdate(UserBase):
+class UserUpdate(BaseModel):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
     nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example="john_doe123")
     first_name: Optional[str] = Field(None, example="John")
@@ -113,16 +114,69 @@ class UserListResponse(BaseModel):
 
 # New Feature: class for updating user profile
 class UserUpdateProfile(BaseModel):
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example="john_doe123")
-    first_name: Optional[str] = Field(None, example="John")
-    last_name: Optional[str] = Field(None, example="Doe")
-    bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
-    profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
-    github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    nickname: Optional[str] = Field(None, min_length=3, max_length=50, pattern=r'^[\w-]+$', example=generate_nickname())
+    first_name: Optional[str] = Field(None, max_length=100, example="John")
+    last_name: Optional[str] = Field(None, max_length=100, example="Doe")
+    bio: Optional[str] = Field(None, max_length=500, example="Experienced software developer specializing in web applications.")
+    profile_picture_url: Optional[str] = Field(None, max_length=255, example="https://example.com/profiles/john.jpg")
+    linkedin_profile_url: Optional[str] = Field(None, max_length=255, example="https://linkedin.com/in/johndoe")
+    github_profile_url: Optional[str] = Field(None, max_length=255, example="https://github.com/johndoe")
 
     @root_validator(pre=True)
     def check_at_least_one_value(cls, values):
         if not any(values.values()):
             raise ValueError("At least one field must be provided for update")
         return values
+
+    @validator('nickname', pre=True, always=True)
+    def validate_nickname(cls, v):
+        if v is not None:
+            reserved_keywords = {"admin", "moderator", "null", "manager", "anonymous", "authenticated"}
+            if v.lower() in reserved_keywords:
+                raise ValueError("This nickname is reserved and cannot be used.")
+        return v
+
+    @validator('first_name')
+    def validate_first_name(cls, v):
+        if v and not re.match(r"^[a-zA-Z\s'-]+$", v):
+            raise ValueError("First name can only contain letters, spaces, hyphens, or apostrophes.")
+        return v
+
+    @validator('last_name')
+    def validate_last_name(cls, v):
+        if v and not re.match(r"^[a-zA-Z\s'-]+$", v):
+            raise ValueError("Last name can only contain letters, spaces, hyphens, or apostrophes.")
+        return v
+
+    @validator('profile_picture_url', pre=True, always=True)
+    def validate_profile_picture_url(cls, v):
+        if v is None:
+            return v  # If the URL is optional, allow None values
+        parsed_url = urlparse(v)
+        if not re.search(r"\.(jpg|jpeg|png)$", parsed_url.path):
+            raise ValueError("Profile picture URL must point to a valid image file (JPEG, PNG).")
+        if parsed_url.scheme not in ['http', 'https']:
+            raise ValueError("Profile picture URL must use http or https.")
+        return v
+
+    @validator('linkedin_profile_url', pre=True, always=True)
+    def validate_linkedin_profile_url(cls, v):
+        if v is None:
+            return v
+        parsed_url = urlparse(v)
+        if parsed_url.scheme not in ['http', 'https']:
+            raise ValueError("LinkedIn profile URL must use http or https.")
+        if parsed_url.netloc != "linkedin.com" or not parsed_url.path.startswith("/in/"):
+            raise ValueError("Invalid LinkedIn profile URL format.")
+        return v
+
+    @validator('github_profile_url', pre=True, always=True)
+    def validate_github_profile_url(cls, v):
+        if v is None:
+            return v
+        parsed_url = urlparse(v)
+        if parsed_url.scheme not in ['http', 'https']:
+            raise ValueError("GitHub profile URL must use http or https.")
+        if parsed_url.netloc != "github.com":
+            raise ValueError("Invalid GitHub profile URL format.")
+        return v
