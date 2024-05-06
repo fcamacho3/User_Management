@@ -2,9 +2,11 @@
 ## IS_601 Final Project
 <br>
 
+
 ## Summary of Issues
 ![GitHub Issues](Embedded_Files/GitHub_Issues.png)
 <br>
+
 
 ## Issues and Solutions
 
@@ -17,6 +19,7 @@
 | #1 | Email Verification Link Incorrectly Contains 'None' Instead of Valid UUID | [View Issue](https://github.com/NageshKanneganti/user_management/issues/1) | [View Solution](https://github.com/NageshKanneganti/user_management/pull/2) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/2/files) |
 <br>
 
+
 ## New Features Implementation
 
 | Feature | Files Changed |
@@ -24,6 +27,31 @@
 | [Implement User Profile Management](https://github.com/NageshKanneganti/user_management/pull/12) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/12/files) |
 | [Implement User Professional Status Upgrade Functionality](https://github.com/NageshKanneganti/user_management/pull/13) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/13/files) |
 <br>
+
+
+## Links to Specific Tests
+
+### Schema Tests
+- [Edge case & functional tests for password validation](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_schemas/test_user_schemas.py#L112-L133)
+- [Test for email validation](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_schemas/test_user_schemas.py#L135-L153)
+- [Edge case and functional tests for the *User Profile Management* feature](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_schemas/test_user_schemas.py#L155-L254)
+
+### Route Tests
+- [Edge case test for `skip` and `limit` parameters](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L196-L213)
+- [Functional tests for `List User` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L215-L230)
+- [Functional tests for `Create User` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L232-L262)
+- [Functional test for new feature, `User Profile Management` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L264-L285)
+- [Error scenario tests for new feature '`User Profile Management` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L287-L323)
+- [Functional test for `Set Professional` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L287-L323)
+- [Error scenario test for updating professional status](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L341-L351)
+
+### Service Tests
+- [Error scenario test for sending email verification](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L166-L199)
+- [Functional test for `create_user` with unique nickname](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L202-L214)
+- [Error scenario tests for duplicate nickname and email](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L202-L214)
+- [Functional and error scenario tests for updating professional status](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L202-L214)
+<br>
+
 
 ## Coverage Report
 ![Coverage](Embedded_Files/Coverage_Report.png)
