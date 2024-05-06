@@ -321,3 +321,36 @@ async def update_profile(
         updated_at=updated_user.updated_at,
         links=create_user_links(updated_user.id, request)
     )
+
+# Update user professional status
+@router.put("/users/{user_id}/set-professional/{is_professional}", response_model=UserResponse, name="set_professional", tags=["User Management Requires (Admin or Manager Roles)"])
+async def update_professional_status(user_id: UUID, is_professional: bool, request: Request, db: AsyncSession = Depends(get_db), email_service: EmailService = Depends(get_email_service), token: str = Depends(oauth2_scheme), current_user: dict = Depends(require_role(["ADMIN", "MANAGER"]))):
+    """
+    Update user is_professional by their ID.
+
+    - user_id: UUID of the user to update.
+    - is_professional: Boolean to set user's is_professional status.
+    """
+    user = await UserService.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    updated_user = await UserService.update_professional_status(db, user_id, is_professional, email_service)
+
+    return UserResponse.model_construct(
+        is_professional=updated_user.is_professional,
+        id=updated_user.id,
+        nickname=updated_user.nickname,
+        first_name=updated_user.first_name,
+        last_name=updated_user.last_name,
+        bio=updated_user.bio,
+        profile_picture_url=updated_user.profile_picture_url,
+        github_profile_url=updated_user.github_profile_url,
+        linkedin_profile_url=updated_user.linkedin_profile_url,
+        role=updated_user.role,
+        email=updated_user.email,
+        last_login_at=updated_user.last_login_at,
+        created_at=updated_user.created_at,
+        updated_at=updated_user.updated_at,
+        links=create_user_links(updated_user.id, request)  
+    )

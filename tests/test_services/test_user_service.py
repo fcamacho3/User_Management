@@ -258,3 +258,22 @@ async def test_create_user_with_duplicate_email(db_session, email_service):
     second_user = await UserService.create(db_session, duplicate_email_data, email_service)
     
     assert second_user is None  # No user should be created due to duplicate email
+
+# Tests for New Feature: Update Professional Status
+# Test for updating professional status to 'True'
+async def test_update_professional_status_true(db_session, user, email_service):
+    updated_user = await UserService.update_professional_status(db_session, user.id, True, email_service)
+    assert updated_user is not None
+    assert updated_user.is_professional is True
+
+# Test for updating professional status to 'False'
+async def test_update_professional_status_false(db_session, user, email_service):
+    updated_user = await UserService.update_professional_status(db_session, user.id, False, email_service)
+    assert updated_user is not None
+    assert updated_user.is_professional is False
+
+# Test updating professional status for non-existent user
+async def test_update_professional_status_invalid_user_id(db_session, email_service):
+    updated_user = await UserService.update_professional_status(db_session, "invalid_id", True, email_service)
+    assert updated_user is None
+
