@@ -57,24 +57,38 @@ class UserService:
             if existing_user:
                 logger.error("User with given email already exists.")
                 return None
+
             validated_data['hashed_password'] = hash_password(validated_data.pop('password'))
-            new_user = User(**validated_data)
-            new_nickname = generate_nickname()
-            while await cls.get_by_nickname(session, new_nickname):
+
+            # Use provided nickname if it doesn't exist, otherwise generate a new one
+            nickname = validated_data.get('nickname')
+            if await cls.get_by_nickname(session, nickname):
+                # Generate a new unique nickname if the provided one is already taken
                 new_nickname = generate_nickname()
-            new_user.nickname = new_nickname
+                while await cls.get_by_nickname(session, new_nickname):
+                    new_nickname = generate_nickname()
+                validated_data['nickname'] = new_nickname
+            else:
+                validated_data['nickname'] = nickname  # Use the provided nickname as it is unique
+
+            new_user = User(**validated_data)
             logger.info(f"User Role: {new_user.role}")
             user_count = await cls.count(session)
-            new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.ANONYMOUS            
-            if new_user.role == UserRole.ADMIN:
-                new_user.email_verified = True
-
-            else:
-                new_user.verification_token = generate_verification_token()
-                await email_service.send_verification_email(new_user)
+            new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.ANONYMOUS
 
             session.add(new_user)
-            await session.commit()
+
+            if new_user.role != UserRole.ADMIN:
+                new_user.verification_token = generate_verification_token()
+                await session.commit()  # Commit before email is sent to ensure user data is saved
+                try:
+                    await email_service.send_verification_email(new_user)
+                except Exception as e:
+                    logger.error(f"Error sending verification email: {e}")
+            else:
+                new_user.email_verified = True
+                await session.commit()  # Single commit for ADMIN users
+
             return new_user
         except ValidationError as e:
             logger.error(f"Validation error during user creation: {e}")
@@ -199,3 +213,25 @@ class UserService:
             await session.commit()
             return True
         return False
+
+# New Feature: update professional status
+    @classmethod
+    async def update_professional_status(cls, session: AsyncSession, user_id: UUID, is_professional: bool, email_service: EmailService) -> Optional[User]:
+        try:
+            query = update(User).where(User.id == user_id).values(is_professional=is_professional).execution_options(synchronize_session="fetch")
+            await cls._execute_query(session, query)
+            updated_user = await cls.get_by_id(session, user_id)
+            if updated_user:
+                session.refresh(updated_user)
+                logger.info(f"User {user_id} updated is_professional status successfully.")
+                try:
+                    await email_service.send_professional_status_email_update(updated_user)
+                except Exception as e:
+                    logger.error(f"Error sending professional status update email: {e}.")
+                return updated_user
+            else:
+                logger.error(f"User {user_id} not found after updating is_professional status.")
+                return None
+        except Exception as e:
+            logger.error(f"Error during updating is_professional status: {e}")
+            return None

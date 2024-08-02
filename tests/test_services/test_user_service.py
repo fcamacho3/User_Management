@@ -1,5 +1,6 @@
 from builtins import range
 import pytest
+from unittest.mock import AsyncMock, patch
 from sqlalchemy import select
 from app.dependencies import get_settings
 from app.models.user_model import User, UserRole
@@ -161,3 +162,118 @@ async def test_unlock_user_account(db_session, locked_user):
     assert unlocked, "The account should be unlocked"
     refreshed_user = await UserService.get_by_id(db_session, locked_user.id)
     assert not refreshed_user.is_locked, "The user should no longer be locked"
+
+# Test for Email Verfication
+@pytest.mark.asyncio
+async def test_create_user_with_email_failure(db_session, email_service):
+    # First user setup (ADMIN)
+    admin_data = {
+        "nickname": generate_nickname(),
+        "email": "email_admin@example.com",
+        "password": "SecureAdmin123!",
+        "role": UserRole.ADMIN.name  # Ensures this user becomes ADMIN
+    }
+    admin_user = await UserService.create(db_session, admin_data, email_service)
+    
+    # Second user setup (Should trigger email verification)
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "email_user@example.com",
+        "password": "ValidPassword123!",
+        "role": UserRole.ANONYMOUS.name  # This should now trigger the email verification process
+    }
+    
+    email_service.send_verification_email = AsyncMock(side_effect=Exception("Email service failure"))
+    
+    with patch('app.services.user_service.logger') as mock_logger:
+        second_user = await UserService.create(db_session, user_data, email_service)
+        
+        # Check the second user is still created
+        assert second_user is not None
+        assert second_user.email == user_data["email"]
+        
+        # Ensure the verification token is set
+        assert second_user.verification_token is not None
+        
+        # Check that an error was logged due to email failure
+        mock_logger.error.assert_called_with("Error sending verification email: Email service failure")
+
+# Tests for create method
+@pytest.mark.asyncio
+async def test_create_user_with_unique_nickname(db_session, email_service):
+    # Prepare user data with a specified nickname
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "unique@example.com",
+        "password": "SecurePassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    # Create a user to ensure the nickname is initially unique
+    user = await UserService.create(db_session, user_data, email_service)
+    assert user is not None
+    assert user.nickname == user_data["nickname"]
+
+@pytest.mark.asyncio
+async def test_create_user_with_duplicate_nickname(db_session, email_service):
+    # Create a user to establish a nickname in the database
+    initial_data = {
+        "nickname": generate_nickname(),
+        "email": "first@example.com",
+        "password": "FirstPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    first_user = await UserService.create(db_session, initial_data, email_service)
+    
+    # Attempt to create another user with the same nickname
+    duplicate_nickname_data = {
+        "nickname": first_user.nickname,  # Reusing the same nickname
+        "email": "second@example.com",
+        "password": "SecondPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    second_user = await UserService.create(db_session, duplicate_nickname_data, email_service)
+    
+    assert second_user is not None
+    assert second_user.nickname != first_user.nickname  # Ensure a new nickname is generated
+    assert second_user.email == duplicate_nickname_data["email"]
+
+@pytest.mark.asyncio
+async def test_create_user_with_duplicate_email(db_session, email_service):
+    # Create a user to establish an email in the database
+    user_data = {
+        "nickname": generate_nickname(),
+        "email": "email@example.com",
+        "password": "UniquePassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    first_user = await UserService.create(db_session, user_data, email_service)
+
+    # Attempt to create another user with the same email
+    duplicate_email_data = {
+        "nickname": generate_nickname(),
+        "email": first_user.email,  # Duplicate email
+        "password": "AnotherPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    second_user = await UserService.create(db_session, duplicate_email_data, email_service)
+    
+    assert second_user is None  # No user should be created due to duplicate email
+
+# Tests for New Feature: Update Professional Status
+# Test for updating professional status to 'True'
+async def test_update_professional_status_true(db_session, user, email_service):
+    updated_user = await UserService.update_professional_status(db_session, user.id, True, email_service)
+    assert updated_user is not None
+    assert updated_user.is_professional is True
+
+# Test for updating professional status to 'False'
+async def test_update_professional_status_false(db_session, user, email_service):
+    updated_user = await UserService.update_professional_status(db_session, user.id, False, email_service)
+    assert updated_user is not None
+    assert updated_user.is_professional is False
+
+# Test updating professional status for non-existent user
+async def test_update_professional_status_invalid_user_id(db_session, email_service):
+    updated_user = await UserService.update_professional_status(db_session, "invalid_id", True, email_service)
+    assert updated_user is None
+

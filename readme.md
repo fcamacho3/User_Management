@@ -1,53 +1,70 @@
+# The User Management System
+## IS_601 Final Project
+<br>
 
 
-# The User Management System Final Project: Your Epic Coding Adventure Awaits! 🎉✨🔥
+## Summary of Issues
+![GitHub Issues](Embedded_Files/GitHub_Issues.png)
+<br>
 
-## Introduction: Buckle Up for the Ride of a Lifetime 🚀🎬
 
-Welcome to the User Management System project - an epic open-source adventure crafted by the legendary Professor Keith Williams for his rockstar students at NJIT! 🏫👨‍🏫⭐ This project is your gateway to coding glory, providing a bulletproof foundation for a user management system that will blow your mind! 🤯 You'll bridge the gap between the realms of seasoned software pros and aspiring student developers like yourselves. 
+## Issues and Solutions
 
-### [Instructor Video - Project Overview and Tips](https://youtu.be/gairLNAp6mA) 🎥
+| Issue ID | Title | Issue Link | Solution | Files Changed |
+|----------|-------|------------|----------|---------------|
+| #10 | Lack of Case Insensitivity Allows Duplicate Emails in `POST / register / Register Endpoint` | [View Issue](https://github.com/NageshKanneganti/user_management/issues/10) | [View Solution](https://github.com/NageshKanneganti/user_management/pull/11) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/11/files) |
+| #8 | Password Validation in API Schema Lacks Space Restriction, Defined Length, and Character Requirements | [View Issue](https://github.com/NageshKanneganti/user_management/issues/8) | [View Solution](https://github.com/NageshKanneganti/user_management/pull/9) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/9/files) |
+| #5 | Mismatch in Request and Response Data for `POST / user / Create User` Endpoint | [View Issue](https://github.com/NageshKanneganti/user_management/issues/5) | [View Solution](https://github.com/NageshKanneganti/user_management/pull/6) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/6/files) |
+| #3 | Invalid `skip` and `limit` Parameters Do Not Trigger 400 Error in `List Users` Endpoint | [View Issue](https://github.com/NageshKanneganti/user_management/issues/3) | [View Solution](https://github.com/NageshKanneganti/user_management/pull/4) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/4/files) |
+| #1 | Email Verification Link Incorrectly Contains 'None' Instead of Valid UUID | [View Issue](https://github.com/NageshKanneganti/user_management/issues/1) | [View Solution](https://github.com/NageshKanneganti/user_management/pull/2) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/2/files) |
+<br>
 
-- [Introduction to the system features and overview of the project - please read](system_documentation.md) 📚
-- [Project Setup Instructions](setup.md) ⚒️
-- [Features to Select From](features.md) 🛠️
-- [About the Project](about.md)🔥🌟
 
-## Goals and Objectives: Unlock Your Coding Superpowers 🎯🏆🌟
+## New Features Implementation
 
-Get ready to ascend to new heights with this legendary project:
+| Feature | Files Changed |
+|---------|---------------|
+| [Implement User Profile Management](https://github.com/NageshKanneganti/user_management/pull/12) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/12/files) |
+| [Implement User Professional Status Upgrade Functionality](https://github.com/NageshKanneganti/user_management/pull/13) | [View Changes](https://github.com/NageshKanneganti/user_management/pull/13/files) |
+<br>
 
-1. **Practical Experience**: Dive headfirst into a real-world codebase, collaborate with your teammates, and contribute to an open-source project like a seasoned pro! 💻👩‍💻🔥
-2. **Quality Assurance**: Develop ninja-level skills in identifying and resolving bugs, ensuring your code quality and reliability are out of this world. 🐞🔍⚡
-3. **Test Coverage**: Write additional tests to cover edge cases, error scenarios, and important functionalities - leave no stone unturned and no bug left behind! ✅🧪🕵️‍♂️
-4. **Feature Implementation**: Implement a brand new, mind-blowing feature and make your epic mark on the project, following best practices for coding, testing, and documentation like a true artisan. ✨🚀🎆
-5. **Collaboration**: Foster teamwork and collaboration through code reviews, issue tracking, and adhering to contribution guidelines - teamwork makes the dream work, and together you'll conquer worlds! 🤝💪🌍
-6. **Industry Readiness**: Prepare for the software industry by working on a project that simulates real-world development scenarios - level up your skills to super hero status  and become an unstoppable coding force! 🔝🚀🏆⚡
 
-## Submission and Grading: Your Chance to Shine 📝✏️📈
+## Links to Specific Tests
 
-1. **Reflection Document**: Submit a 1-2 page Word document reflecting on your learnings throughout the course and your experience working on this epic project. Include links to the closed issues for the **5 QA issues, 10 NEW tests, and 1 Feature** you'll be graded on. Make sure your project successfully deploys to DockerHub and include a link to your Docker repository in the document - let your work speak for itself! 📄🔗💥
+### Schema Tests
+- [Edge case & functional tests for password validation](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_schemas/test_user_schemas.py#L112-L133)
+- [Test for email validation](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_schemas/test_user_schemas.py#L135-L153)
+- [Edge case and functional tests for the *User Profile Management* feature](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_schemas/test_user_schemas.py#L155-L254)
 
-2. **Commit History**: Show off your consistent hard work through your commit history like a true coding warrior. **Projects with less than 10 commits will get an automatic 0 - ouch!** 😬⚠️ A significant part of your project's evaluation will be based on your use of issues, commits, and following a professional development process like a boss - prove your coding prowess! 💻🔄🔥
+### Route Tests
+- [Edge case test for `skip` and `limit` parameters](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L196-L213)
+- [Functional tests for `List User` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L215-L230)
+- [Functional tests for `Create User` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L232-L262)
+- [Functional test for new feature, `User Profile Management` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L264-L285)
+- [Error scenario tests for new feature '`User Profile Management` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L287-L323)
+- [Functional test for `Set Professional` endpoint](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L287-L323)
+- [Error scenario test for updating professional status](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_api/test_users_api.py#L341-L351)
 
-3. **Deployability**: Broken projects that don't deploy to Dockerhub or pass all the automated tests on GitHub actions will face point deductions - nobody likes a buggy app! 🐞☠️ Show the world your flawless coding skills!
+### Service Tests
+- [Error scenario test for sending email verification](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L166-L199)
+- [Functional test for `create_user` with unique nickname](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L202-L214)
+- [Error scenario tests for duplicate nickname and email](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L202-L214)
+- [Functional and error scenario tests for updating professional status](https://github.com/NageshKanneganti/user_management/blob/8b1885a908f4f45bc49fcb8cef80e1a1524928a4/tests/test_services/test_user_service.py#L202-L214)
+<br>
 
-## Managing the Project Workload: Stay Focused, Stay Victorious ⏱️🧠⚡
 
-This project requires effective time management and a well-planned strategy, but fear not - you've got this! Follow these steps to ensure a successful (and sane!) project outcome:
+## Coverage Report
+![Coverage](Embedded_Files/Coverage_Report.png)
+<br>
 
-1. **Select a Feature**: [Choose a feature](features.md) from the provided list of additional improvements that sparks your interest and aligns with your goals like a laser beam. ✨⭐🎯 This is your chance to shine!
+## GitHub Actions
+[Link to GitHub Workflows](https://github.com/NageshKanneganti/user_management/actions)
+<br>
 
-2. **Quality Assurance (QA)**: Thoroughly test the system's major functionalities related to your chosen feature and identify at least 5 issues or bugs like a true detective. Create GitHub issues for each identified problem, providing detailed descriptions and steps to reproduce - the more detail, the merrier! 🔍🐞🕵️‍♀️ Leave no stone unturned!
+## GitHub Commits
+[Link to Commits](https://github.com/NageshKanneganti/user_management/commits/main/)
+<br>
 
-3. **Test Coverage Improvement**: Review the existing test suite and identify gaps in test coverage like a pro. Create 10 additional tests to cover edge cases, error scenarios, and important functionalities related to your chosen feature. Focus on areas such as user registration, login, authorization, and database interactions. Simulate the setup of the system as the admin user, then creating users, and updating user accounts - leave no stone unturned, no bug left behind! ✅🧪🔍🔬 Become the master of testing!
-
-4. **New Feature Implementation**: Implement your chosen feature, following the project's coding practices and architecture like a coding ninja. Write appropriate tests to ensure your new feature is functional and reliable like a rock. Document the new feature, including its usage, configuration, and any necessary migrations - future you will thank you profusely! 🚀✨📝👩‍💻⚡ Make your mark on this project!
-
-5. **Maintain a Working Main Branch**: Throughout the project, ensure you always have a working main branch deploying to Docker like a well-oiled machine. This will prevent any last-minute headaches and ensure a smooth submission process - no tears allowed, only triumphs! 😊🚢⚓ Stay focused, stay victorious!
-
-Remember, it's more important to make something work reliably and be reasonably complete than to implement an overly complex feature. Focus on creating a feature that you can build upon or demonstrate in an interview setting - show off your skills like a rockstar! 💪🚀🎓
-
-Don't forget to always have a working main branch deploying to Docker at all times. If you always have a working main branch, you will never be in jeopardy of receiving a very disappointing grade :-). Keep that main branch shining bright!
-
-Let's embark on this epic coding adventure together and conquer the world of software engineering! You've got this, coding rockstars! 🚀🌟✨
+## Dockerhub
+[Link to Dockerhub Repo](https://hub.docker.com/repository/docker/nagkann/user_management/general)
+![Dockerhub](Embedded_Files/Dockerhub.png)
