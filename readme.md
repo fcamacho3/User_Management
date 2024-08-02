@@ -4,7 +4,7 @@
 
 
 ## Summary of Issues
-![GitHub Issues](Embedded_Files/GitHub_Issues.png)
+![GitHub Issues]()
 <br>
 
 
