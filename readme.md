@@ -54,7 +54,7 @@
 
 
 ## Coverage Report
-![Coverage]()
+![Coverage](Embedded_Files/Coverage_Report.png)
 <br>
 
 ## GitHub Actions
@@ -67,4 +67,5 @@
 
 ## Dockerhub
 [Link to Dockerhub Repo](https://hub.docker.com/repository/docker/fcamacho3/user_management/general)
-![Dockerhub](Embedded_Files/Dockerhub image.png)
+
+![Dockerhub](Embedded_Files/Dockerhub_image.png)
