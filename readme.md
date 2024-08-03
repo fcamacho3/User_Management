@@ -66,5 +66,5 @@
 <br>
 
 ## Dockerhub
-[Link to Dockerhub Repo][(https://hub.docker.com/repository/docker/fcamacho3/user_management/general)]
+[Link to Dockerhub Repo](https://hub.docker.com/repository/docker/fcamacho3/user_management/general)
 ![Dockerhub](Embedded_Files/Dockerhub image.png)
